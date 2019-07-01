@@ -1,14 +1,36 @@
 package com.example.photogallery;
 
+import android.graphics.Bitmap;
+import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Message;
 import android.util.Log;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ThumbnailDownloader<T> extends HandlerThread {
     private static final String TAG = "ThumbnailDownloader";
-    private boolean mHasQuit = false;
+    private static final int DOWNLOAD_MESSAGE = 0;
 
-    public ThumbnailDownloader() {
+    private boolean mHasQuit = false;
+    private Handler mRequestHandler;
+    private Handler mResponseHandler;
+    private ConcurrentHashMap<T, String> mHashMap = new ConcurrentHashMap<>();
+
+    public ThumbnailDownloader(Handler responseHandler) {
         super(TAG);
+        mResponseHandler = responseHandler;
+    }
+
+    public void queueThumbnail(T target, String url){
+        if (url == null){
+            mHashMap.remove(target);
+        } else {
+            mHashMap.put(target, url);
+        }
+
+        mRequestHandler.obtainMessage(DOWNLOAD_MESSAGE, target)
+                .sendToTarget();
     }
 
     @Override
@@ -17,7 +39,23 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         return super.quit();
     }
 
-    public void queueThumbnail(T target, String url){
-        Log.i(TAG, "Photo url: " + url);
+    @Override
+    protected void onLooperPrepared() {
+        mRequestHandler = new PhotoHandler();
+    }
+
+    private class PhotoHandler extends Handler{
+        public PhotoHandler() {
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == DOWNLOAD_MESSAGE){
+                T target = (T) msg.obj;
+                String url = mHashMap.get(target);
+                Bitmap bitmap = FlickrFetch.getBitmap(url);
+                Log.i(TAG, "Bitmap created");
+            }
+        }
     }
 }
