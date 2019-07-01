@@ -1,10 +1,13 @@
 package com.example.photogallery;
 
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,8 +18,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class PhotoGalleryFragment extends Fragment {
+    private static final String TAG = "PhotoGalleryFragment";
     private RecyclerView mRecyclerView;
     private List<Photo> photoGallery;
+    private ThumbnailDownloader<GalleryAdapter.ItemHolder> mThumbnailDownloader;
 
     // TODO: create a unit test to check if photoGallery is null in setUpAdapter()
     public PhotoGalleryFragment(){}
@@ -30,6 +35,16 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         new FetchGallery().execute();
+
+        mThumbnailDownloader = new ThumbnailDownloader<>();
+        mThumbnailDownloader.start();
+        mThumbnailDownloader.getLooper();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mThumbnailDownloader.quit();
     }
 
     @Nullable
@@ -78,15 +93,18 @@ public class PhotoGalleryFragment extends Fragment {
         }
 
         private class ItemHolder extends RecyclerView.ViewHolder{
-            private TextView mTextView;
+            private ImageView mImageView;
 
             public ItemHolder(@NonNull View itemView) {
                 super(itemView);
-                mTextView = (TextView) itemView.findViewById(R.id.photo_view);
+                mImageView = (ImageView) itemView.findViewById(R.id.photo_view);
             }
 
             public void bind(Photo photo){
-                mTextView.setText(photo.getTitle());
+                mThumbnailDownloader.queueThumbnail(this, photo.getUrl());
+                Drawable placeholder = getResources().getDrawable(R.drawable.bill_up_close,
+                        getActivity().getTheme());
+                mImageView.setImageDrawable(placeholder);
             }
         }
     }
