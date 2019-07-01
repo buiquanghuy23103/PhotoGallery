@@ -1,5 +1,7 @@
 package com.example.photogallery;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Log;
 
@@ -11,6 +13,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,7 +31,41 @@ public class FlickrFetch {
     private static final String BASE_URL = "https://www.flickr.com/services/rest/";
     private static final String API_KEY = "7e6ca88d2b6b5730594ff32c5bea0579";
 
-    // TODO: use Retrofit to fetch JSON from URL
+    // TODO: use Volley to fetch JSON from URL
+    // TODO: use Glide to load image
+    public static Bitmap getBitmap(String url){
+        try {
+            byte[] bitmapBytes = getUrlBytes(url);
+            return BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.length);
+        } catch (IOException e){
+            Log.e(TAG, "Failed to load bitmap from url " + e);
+            return null;
+        }
+    }
+
+    private static byte[] getUrlBytes(String urlSpec) throws IOException {
+        URL url = new URL(urlSpec);
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            InputStream in = connection.getInputStream();
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                throw new IOException(connection.getResponseMessage() +
+                        ": with " +
+                        urlSpec);
+            }
+            int bytesRead = 0;
+            byte[] buffer = new byte[1024];
+            while ((bytesRead = in.read(buffer)) > 0) {
+                out.write(buffer, 0, bytesRead);
+            }
+            out.close();
+            return out.toByteArray();
+        } finally {
+            connection.disconnect();
+        }
+    }
+
     public static List<Photo> getGallery(){
         List<Photo> photos = null;
         Gson gson = new Gson();
