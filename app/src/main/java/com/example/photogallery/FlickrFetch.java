@@ -36,7 +36,9 @@ public class FlickrFetch {
             photos = Arrays.asList(gson.fromJson(getJsonArray().toString(), Photo[].class));
         }
 
-        Log.i(TAG, "Successfully fetch gallery");
+        for (int i = 0; i < 5; i++) {
+            Log.i(TAG, "photo url: " + photos.get(i).getUrl());
+        }
 
         return photos;
     }
@@ -107,7 +109,7 @@ public class FlickrFetch {
                 .appendQueryParameter("api_key", API_KEY)
                 .appendQueryParameter("format", "json")
                 .appendQueryParameter("nojsoncallback", "1")
-                .appendQueryParameter("extras", "urls_s")
+                .appendQueryParameter("extras", "url_s")
                 .build();
     }
 }
