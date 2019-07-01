@@ -18,6 +18,7 @@ public class PhotoGalleryFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private List<Photo> photoGallery;
 
+    // TODO: create a unit test to check if photoGallery is null in setUpAdapter()
     public PhotoGalleryFragment(){}
 
     public static PhotoGalleryFragment newInstance() {

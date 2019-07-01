@@ -3,6 +3,9 @@ package com.example.photogallery;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,10 +14,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class FlickrFetch {
@@ -23,27 +28,12 @@ public class FlickrFetch {
     private static final String BASE_URL = "https://www.flickr.com/services/rest/";
     private static final String API_KEY = "7e6ca88d2b6b5730594ff32c5bea0579";
 
+    // TODO: use Retrofit to fetch JSON from URL
     public static List<Photo> getGallery(){
-        List<Photo> photos = new ArrayList<Photo>();
-        for (int i = 0; i < getJsonArray().length(); i++) {
-            try {
-                JSONObject jsonObject = getJsonArray().getJSONObject(i);
-
-                Photo photo = new Photo();
-                photo.setId(jsonObject.getString("id"));
-                photo.setTitle(jsonObject.getString("title"));
-//                if (!jsonObject.has("url_s")){
-//                    continue; // Skip if no url_s available
-//                }
-//                photo.setUrl(jsonObject.getString("url_s"));
-
-                photos.add(photo);
-            } catch (JSONException e) {
-                Log.e(TAG, "Failed to get JSON objects from the JSON array" + e);
-                e.printStackTrace();
-                return null;
-            }
-
+        List<Photo> photos = null;
+        Gson gson = new Gson();
+        if (getJsonArray().length() > 0){
+            photos = Arrays.asList(gson.fromJson(getJsonArray().toString(), Photo[].class));
         }
 
         Log.i(TAG, "Successfully fetch gallery");

@@ -1,8 +1,15 @@
 package com.example.photogallery;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Photo {
+    @SerializedName("id")
     private String mId;
+
+    @SerializedName("title")
     private String mTitle;
+
+    @SerializedName("url_s")
     private String mUrl;
 
     public String getId() {
