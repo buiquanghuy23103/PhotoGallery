@@ -16,10 +16,15 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     private Handler mRequestHandler;
     private Handler mResponseHandler;
     private ConcurrentHashMap<T, String> mHashMap = new ConcurrentHashMap<>();
+    private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
 
     public ThumbnailDownloader(Handler responseHandler) {
         super(TAG);
         mResponseHandler = responseHandler;
+    }
+
+    public void setThumbnailDownloadListener(ThumbnailDownloadListener<T> thumbnailDownloadListener) {
+        mThumbnailDownloadListener = thumbnailDownloadListener;
     }
 
     public void queueThumbnail(T target, String url){
@@ -57,5 +62,9 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                 Log.i(TAG, "Bitmap created");
             }
         }
+    }
+
+    public interface ThumbnailDownloadListener<T>{
+        void onThumbnailDownloaded(T target, Bitmap thumbnail);
     }
 }

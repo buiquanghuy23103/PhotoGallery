@@ -1,8 +1,10 @@
 package com.example.photogallery;
 
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,7 +38,12 @@ public class PhotoGalleryFragment extends Fragment {
         setRetainInstance(true);
         new FetchGallery().execute();
 
-        mThumbnailDownloader = new ThumbnailDownloader<>();
+        Handler responsHandler = new Handler();
+        mThumbnailDownloader = new ThumbnailDownloader<GalleryAdapter.ItemHolder>(responsHandler);
+        mThumbnailDownloader.setThumbnailDownloadListener((itemHolder, bitmap) -> {
+            Drawable drawable = new BitmapDrawable(getResources(), bitmap);
+            itemHolder.bindImageView(drawable);
+        });
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
     }
@@ -104,7 +111,11 @@ public class PhotoGalleryFragment extends Fragment {
                 mThumbnailDownloader.queueThumbnail(this, photo.getUrl());
                 Drawable placeholder = getResources().getDrawable(R.drawable.bill_up_close,
                         getActivity().getTheme());
-                mImageView.setImageDrawable(placeholder);
+                bindImageView(placeholder);
+            }
+
+            public void bindImageView(Drawable drawable){
+                mImageView.setImageDrawable(drawable);
             }
         }
     }
