@@ -39,6 +39,11 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                 .sendToTarget();
     }
 
+    public void clearUp(){
+        mQueue.clear();
+        mRequestHandler.removeMessages(DOWNLOAD_MESSAGE);
+    }
+
     @Override
     public boolean quit() {
         mHasQuit = true;
