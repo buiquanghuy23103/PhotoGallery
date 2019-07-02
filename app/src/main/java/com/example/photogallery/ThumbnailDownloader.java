@@ -15,7 +15,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     private boolean mHasQuit = false;
     private Handler mRequestHandler;
     private Handler mResponseHandler;
-    private ConcurrentHashMap<T, String> mHashMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<T, String> mQueue = new ConcurrentHashMap<>();
     private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
 
     public ThumbnailDownloader(Handler responseHandler) {
@@ -28,10 +28,11 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     }
 
     public void queueThumbnail(T target, String url){
+        // Add new target to the queue
         if (url == null){
-            mHashMap.remove(target);
+            mQueue.remove(target);
         } else {
-            mHashMap.put(target, url);
+            mQueue.put(target, url);
         }
 
         mRequestHandler.obtainMessage(DOWNLOAD_MESSAGE, target)
@@ -56,10 +57,21 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == DOWNLOAD_MESSAGE){
+                // Get message from main thread and do background work
                 T target = (T) msg.obj;
-                String url = mHashMap.get(target);
+                String url = mQueue.get(target);
                 Bitmap bitmap = FlickrFetch.getBitmap(url);
                 Log.i(TAG, "Bitmap created");
+
+                // Send message back to main thread
+                mResponseHandler.post(() -> {
+                    if (mQueue.get(target) != url || mHasQuit){
+                        return;
+                    }
+
+                    mQueue.remove(target);
+                    mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
+                });
             }
         }
     }
