@@ -35,6 +35,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
             mQueue.put(target, url);
         }
 
+        // Generate a message and send it to ThumbnailDownloader
         mRequestHandler.obtainMessage(DOWNLOAD_MESSAGE, target)
                 .sendToTarget();
     }

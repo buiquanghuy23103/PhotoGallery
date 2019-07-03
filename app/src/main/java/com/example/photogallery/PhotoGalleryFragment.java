@@ -5,12 +5,10 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -130,7 +128,7 @@ public class PhotoGalleryFragment extends Fragment {
         @Override
         protected List<Photo> doInBackground(Void... voids) {
 
-            return FlickrFetch.getGallery();
+            return FlickrFetch.getRecentPhotos();
         }
 
         @Override
@@ -138,6 +136,5 @@ public class PhotoGalleryFragment extends Fragment {
             photoGallery = photos;
             setUpAdapter();
         }
-
     }
 }

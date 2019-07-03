@@ -30,9 +30,35 @@ public class FlickrFetch {
 
     private static final String BASE_URL = "https://www.flickr.com/services/rest/";
     private static final String API_KEY = "7e6ca88d2b6b5730594ff32c5bea0579";
+    private static final String FETCH_RECENT_METHODS = "flickr.photos.getRecent";
+    private static final String SEARCH_METHOD = "flickr.photos.search";
+
+    private static final Uri ENDPOINT = Uri.parse(BASE_URL).buildUpon()
+            .appendQueryParameter("api_key", API_KEY)
+            .appendQueryParameter("format", "json")
+            .appendQueryParameter("nojsoncallback", "1")
+            .appendQueryParameter("extras", "url_s")
+            .build();
+
+    private static Uri mRequestUri;
 
     // TODO: use Volley to fetch JSON from URL
     // TODO: use Glide to load image
+
+    public static List<Photo> getRecentPhotos(){
+        mRequestUri = ENDPOINT.buildUpon()
+                .appendQueryParameter("method", FETCH_RECENT_METHODS).build();
+        return getGallery();
+    }
+
+    public static List<Photo> getSearchPhotos(String query){
+        mRequestUri = ENDPOINT.buildUpon()
+                .appendQueryParameter("method", SEARCH_METHOD)
+                .appendQueryParameter("query", query)
+                .build();
+        return getGallery();
+    }
+
     public static Bitmap getBitmap(String url){
         try {
             byte[] bitmapBytes = getUrlBytes(url);
@@ -66,7 +92,7 @@ public class FlickrFetch {
         }
     }
 
-    public static List<Photo> getGallery(){
+    private static List<Photo> getGallery(){
         List<Photo> photos = null;
         Gson gson = new Gson();
         if (getJsonArray().length() > 0){
@@ -98,7 +124,7 @@ public class FlickrFetch {
         BufferedReader reader = null;
 
         try {
-            URL url = new URL(getRequestUri().toString());
+            URL url = new URL(mRequestUri.toString());
             connection = (HttpURLConnection) url.openConnection();
 
             InputStream input = connection.getInputStream();
@@ -138,15 +164,5 @@ public class FlickrFetch {
         Log.i(TAG, jsonString);
 
         return jsonString;
-    }
-
-    private static Uri getRequestUri(){
-        return Uri.parse(BASE_URL).buildUpon()
-                .appendQueryParameter("method", "flickr.photos.getRecent")
-                .appendQueryParameter("api_key", API_KEY)
-                .appendQueryParameter("format", "json")
-                .appendQueryParameter("nojsoncallback", "1")
-                .appendQueryParameter("extras", "url_s")
-                .build();
     }
 }
