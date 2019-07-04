@@ -17,7 +17,7 @@ public class StartupReceiver extends BroadcastReceiver {
         Log.i(TAG, "Receive broadcast intent " + intent.getAction());
         // Start service on boot
         boolean isServiceOn = QueryPreference.getServiceStatus(context);
-        PollService.setServiceStatus(context, isServiceOn);
+        PollService.setServiceOn(context, isServiceOn);
     }
 
 

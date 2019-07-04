@@ -24,7 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends BaseFragment {
     private static final String TAG = "PhotoGalleryFragment";
     private RecyclerView mRecyclerView;
     private List<Photo> photoGallery;
@@ -49,7 +49,7 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     private void startPollService() {
-        PollService.setServiceStatus(getActivity(), true);
+        PollService.setServiceOn(getActivity(), true);
     }
 
     private void downloadGallery() {
@@ -77,7 +77,7 @@ public class PhotoGalleryFragment extends Fragment {
 
             case R.id.toggle_service:
                 boolean serviceState = !PollService.isServiceOn(getActivity());
-                PollService.setServiceStatus(getActivity(), serviceState);
+                PollService.setServiceOn(getActivity(), serviceState);
                 getActivity().invalidateOptionsMenu();
                 return true;
 

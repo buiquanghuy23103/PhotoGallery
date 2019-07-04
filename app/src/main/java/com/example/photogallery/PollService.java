@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class PollService extends IntentService {
+    public static final String SHOW_NOTIFICATION_ACTION = "photoGallery.PollService.SHOW_NOTIFICATION";
     private static final String TAG = "PollService";
     private static final long SERVICE_INTERVAL = TimeUnit.MINUTES.toMillis(1);
     private static final int POLL_SERVICE_REQUEST_CODE = 0;
@@ -41,7 +42,7 @@ public class PollService extends IntentService {
         return pendingIntent != null;
     }
 
-    public static void setServiceStatus(Context context, boolean isOn){
+    public static void setServiceOn(Context context, boolean isOn){
         Intent intent = new Intent(context, PollService.class);
         PendingIntent pendingIntent = PendingIntent.getService(context, POLL_SERVICE_REQUEST_CODE,
                 intent, 0);
@@ -92,6 +93,7 @@ public class PollService extends IntentService {
                 notificationManager.notify(NOTIFICATION_ID, notification);
             }
             QueryPreference.setLastResultId(this, lastResultId);
+            sendBroadcast(new Intent(SHOW_NOTIFICATION_ACTION));
         }
     }
 
