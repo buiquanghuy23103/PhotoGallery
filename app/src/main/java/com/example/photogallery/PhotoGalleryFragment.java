@@ -1,14 +1,21 @@
 package com.example.photogallery;
 
+import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
+import androidx.appcompat.widget.SearchView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,16 +41,72 @@ public class PhotoGalleryFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        new FetchGallery().execute();
+        setHasOptionsMenu(true);
+
+        updateGallery();
 
         Handler responsHandler = new Handler();
-        mThumbnailDownloader = new ThumbnailDownloader<GalleryAdapter.ItemHolder>(responsHandler);
+        mThumbnailDownloader = new ThumbnailDownloader<>(responsHandler);
         mThumbnailDownloader.setThumbnailDownloadListener((itemHolder, bitmap) -> {
             Drawable drawable = new BitmapDrawable(getResources(), bitmap);
             itemHolder.bindImageView(drawable);
         });
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
+    }
+
+    private void updateGallery() {
+        String query = QueryPreference.getSearchQueryPref(getActivity());
+        new FetchGallery().execute(query);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.menu_item_clear_search:
+                QueryPreference.setSearchQueryPref(getActivity(), null);
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_photo_gallery, menu);
+
+        MenuItem item = menu.findItem(R.id.menu_item_search);
+        final SearchView searchView = (SearchView) item.getActionView();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Log.i(TAG, "Query text submitted");
+                QueryPreference.setSearchQueryPref(getActivity(), query);
+                hideKeyboard();
+                updateGallery();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                Log.i(TAG, "Query text change" + newText);
+                return true;
+            }
+        });
+
+        searchView.setOnSearchClickListener(view -> {
+            String query = QueryPreference.getSearchQueryPref(getActivity());
+            searchView.setQuery(query, false);
+        });
+    }
+
+    private void hideKeyboard(){
+        final InputMethodManager imm = (InputMethodManager)
+                getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
     }
 
     @Override
@@ -68,6 +131,7 @@ public class PhotoGalleryFragment extends Fragment {
 
         return view;
     }
+
 
 
     private void setUpAdapter(){
@@ -124,11 +188,11 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
-    private class FetchGallery extends AsyncTask<Void, Void, List<Photo>>{
+    private class FetchGallery extends AsyncTask<String, Void, List<Photo>>{
         @Override
-        protected List<Photo> doInBackground(Void... voids) {
-            String query = "robot";
-            if (query == null) {
+        protected List<Photo> doInBackground(String... strings) {
+            String query = strings[0];
+            if (query == null || query.length() == 0) {
                 return FlickrFetch.getRecentPhotos();
             } else {
                 return FlickrFetch.getSearchPhotos(query);
