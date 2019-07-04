@@ -24,8 +24,18 @@ public class PollService extends IntentService {
         super(TAG);
     }
 
-    public static Intent newInstance(Context context) {
+    public static Intent newIntent(Context context) {
         return new Intent(context, PollService.class);
+    }
+
+    public static boolean isServiceAlarmOn(Context context){
+        Intent intent = PollService.newIntent(context);
+        PendingIntent pendingIntent = PendingIntent.getService(
+                context,
+                POLL_SERVICE_REQUEST_CODE,
+                intent,
+                PendingIntent.FLAG_NO_CREATE);
+        return pendingIntent != null;
     }
 
     public static void setAlarm(Context context, boolean isOn){

@@ -1,7 +1,6 @@
 package com.example.photogallery;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -72,8 +71,14 @@ public class PhotoGalleryFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
-            case R.id.menu_item_clear_search:
+            case R.id.clear_search:
                 QueryPreference.setSearchQueryPref(getActivity(), null);
+                return true;
+
+            case R.id.toggle_service:
+                boolean serviceState = !PollService.isServiceAlarmOn(getActivity());
+                PollService.setAlarm(getActivity(), serviceState);
+                getActivity().invalidateOptionsMenu();
                 return true;
 
             default:
@@ -86,7 +91,15 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_photo_gallery, menu);
 
-        MenuItem item = menu.findItem(R.id.menu_item_search);
+        setUpSearchView(menu);
+        MenuItem item = menu.findItem(R.id.toggle_service);
+        int stringId = PollService.isServiceAlarmOn(getActivity())?
+                R.string.stop_polling : R.string.start_polling;
+        item.setTitle(stringId);
+    }
+
+    private void setUpSearchView(Menu menu) {
+        MenuItem item = menu.findItem(R.id.search_view);
         final SearchView searchView = (SearchView) item.getActionView();
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
