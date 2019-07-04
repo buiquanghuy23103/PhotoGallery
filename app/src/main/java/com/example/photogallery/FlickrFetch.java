@@ -47,14 +47,15 @@ public class FlickrFetch {
 
     public static List<Photo> getRecentPhotos(){
         mRequestUri = ENDPOINT.buildUpon()
-                .appendQueryParameter("method", FETCH_RECENT_METHODS).build();
+                .appendQueryParameter("method", FETCH_RECENT_METHODS)
+                .build();
         return getGallery();
     }
 
     public static List<Photo> getSearchPhotos(String query){
         mRequestUri = ENDPOINT.buildUpon()
                 .appendQueryParameter("method", SEARCH_METHOD)
-                .appendQueryParameter("query", query)
+                .appendQueryParameter("text", query)
                 .build();
         return getGallery();
     }
