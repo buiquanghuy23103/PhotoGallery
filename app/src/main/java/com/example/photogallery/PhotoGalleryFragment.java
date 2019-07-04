@@ -49,7 +49,7 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     private void startPollService() {
-        PollService.setAlarm(getActivity(), true);
+        PollService.setServiceStatus(getActivity(), true);
     }
 
     private void downloadGallery() {
@@ -64,7 +64,7 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     private void updateGalleryUrl() {
-        String query = QueryPreference.getSearchQueryPref(getActivity());
+        String query = QueryPreference.getSearchQuery(getActivity());
         new FetchGallery().execute(query);
     }
 
@@ -72,12 +72,12 @@ public class PhotoGalleryFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.clear_search:
-                QueryPreference.setSearchQueryPref(getActivity(), null);
+                QueryPreference.setSearchQuery(getActivity(), null);
                 return true;
 
             case R.id.toggle_service:
-                boolean serviceState = !PollService.isServiceAlarmOn(getActivity());
-                PollService.setAlarm(getActivity(), serviceState);
+                boolean serviceState = !PollService.isServiceOn(getActivity());
+                PollService.setServiceStatus(getActivity(), serviceState);
                 getActivity().invalidateOptionsMenu();
                 return true;
 
@@ -93,7 +93,7 @@ public class PhotoGalleryFragment extends Fragment {
 
         setUpSearchView(menu);
         MenuItem item = menu.findItem(R.id.toggle_service);
-        int stringId = PollService.isServiceAlarmOn(getActivity())?
+        int stringId = PollService.isServiceOn(getActivity())?
                 R.string.stop_polling : R.string.start_polling;
         item.setTitle(stringId);
     }
@@ -106,7 +106,7 @@ public class PhotoGalleryFragment extends Fragment {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.i(TAG, "Query text submitted");
-                QueryPreference.setSearchQueryPref(getActivity(), query);
+                QueryPreference.setSearchQuery(getActivity(), query);
                 hideKeyboard();
                 updateGalleryUrl();
                 return true;
@@ -120,7 +120,7 @@ public class PhotoGalleryFragment extends Fragment {
         });
 
         searchView.setOnSearchClickListener(view -> {
-            String query = QueryPreference.getSearchQueryPref(getActivity());
+            String query = QueryPreference.getSearchQuery(getActivity());
             searchView.setQuery(query, false);
         });
     }

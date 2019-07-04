@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.SystemClock;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -32,7 +31,7 @@ public class PollService extends IntentService {
         return new Intent(context, PollService.class);
     }
 
-    public static boolean isServiceAlarmOn(Context context){
+    public static boolean isServiceOn(Context context){
         Intent intent = PollService.newIntent(context);
         PendingIntent pendingIntent = PendingIntent.getService(
                 context,
@@ -42,7 +41,7 @@ public class PollService extends IntentService {
         return pendingIntent != null;
     }
 
-    public static void setAlarm(Context context, boolean isOn){
+    public static void setServiceStatus(Context context, boolean isOn){
         Intent intent = new Intent(context, PollService.class);
         PendingIntent pendingIntent = PendingIntent.getService(context, POLL_SERVICE_REQUEST_CODE,
                 intent, 0);
@@ -53,21 +52,26 @@ public class PollService extends IntentService {
                     SystemClock.elapsedRealtime(),
                     SERVICE_INTERVAL,
                     pendingIntent);
+            Log.i(TAG, "Service is on");
         } else {
             alarmManager.cancel(pendingIntent);
             pendingIntent.cancel();
         }
+
+        QueryPreference.setServiceStatus(context, true);
     }
 
+    // Handle notification for new pictures
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         if (isNetworkConnected()){
-            String query = QueryPreference.getSearchQueryPref(this);
-            String lastResultId = QueryPreference.getLastResultIdPref(this);
+            String query = QueryPreference.getSearchQuery(this);
+            String lastResultId = QueryPreference.getLastResultId(this);
             List<Photo> gallery = FlickrFetch.getGalleryByQuery(query);
 
             String resultId = gallery.get(0).getId();
             if (!resultId.equals(lastResultId)){
+                Log.i(TAG, "Got new result");
                 Intent i = PhotoGalleryActivity.newIntent(this);
                 PendingIntent pendingIntent = PendingIntent.getActivity(
                         this,
@@ -87,7 +91,7 @@ public class PollService extends IntentService {
                 NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
                 notificationManager.notify(NOTIFICATION_ID, notification);
             }
-            QueryPreference.setLastResultIdPref(this, lastResultId);
+            QueryPreference.setLastResultId(this, lastResultId);
         }
     }
 
