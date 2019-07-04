@@ -1,6 +1,7 @@
 package com.example.photogallery;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -43,8 +44,16 @@ public class PhotoGalleryFragment extends Fragment {
         setRetainInstance(true);
         setHasOptionsMenu(true);
 
-        updateGallery();
+        updateGalleryUrl();
+        startPollService();
+        downloadGallery();
+    }
 
+    private void startPollService() {
+        PollService.setAlarm(getActivity(), true);
+    }
+
+    private void downloadGallery() {
         Handler responsHandler = new Handler();
         mThumbnailDownloader = new ThumbnailDownloader<>(responsHandler);
         mThumbnailDownloader.setThumbnailDownloadListener((itemHolder, bitmap) -> {
@@ -55,7 +64,7 @@ public class PhotoGalleryFragment extends Fragment {
         mThumbnailDownloader.getLooper();
     }
 
-    private void updateGallery() {
+    private void updateGalleryUrl() {
         String query = QueryPreference.getSearchQueryPref(getActivity());
         new FetchGallery().execute(query);
     }
@@ -86,7 +95,7 @@ public class PhotoGalleryFragment extends Fragment {
                 Log.i(TAG, "Query text submitted");
                 QueryPreference.setSearchQueryPref(getActivity(), query);
                 hideKeyboard();
-                updateGallery();
+                updateGalleryUrl();
                 return true;
             }
 
@@ -191,12 +200,7 @@ public class PhotoGalleryFragment extends Fragment {
     private class FetchGallery extends AsyncTask<String, Void, List<Photo>>{
         @Override
         protected List<Photo> doInBackground(String... strings) {
-            String query = strings[0];
-            if (query == null || query.length() == 0) {
-                return FlickrFetch.getRecentPhotos();
-            } else {
-                return FlickrFetch.getSearchPhotos(query);
-            }
+            return FlickrFetch.getGalleryByQuery(strings[0]);
         }
 
         @Override

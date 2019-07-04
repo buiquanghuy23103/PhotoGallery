@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,11 +16,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,19 +42,18 @@ public class FlickrFetch {
     // TODO: use Volley to fetch JSON from URL
     // TODO: use Glide to load image
 
-    public static List<Photo> getRecentPhotos(){
-        mRequestUri = ENDPOINT.buildUpon()
-                .appendQueryParameter("method", FETCH_RECENT_METHODS)
-                .build();
-        return getGallery();
-    }
-
-    public static List<Photo> getSearchPhotos(String query){
-        mRequestUri = ENDPOINT.buildUpon()
-                .appendQueryParameter("method", SEARCH_METHOD)
-                .appendQueryParameter("text", query)
-                .build();
-        return getGallery();
+    public static List<Photo> getGalleryByQuery(String query){
+        if (query == null || query.length() == 0){
+            mRequestUri = ENDPOINT.buildUpon()
+                    .appendQueryParameter("method", FETCH_RECENT_METHODS)
+                    .build();
+        } else {
+            mRequestUri = ENDPOINT.buildUpon()
+                    .appendQueryParameter("method", SEARCH_METHOD)
+                    .appendQueryParameter("text", query)
+                    .build();
+        }
+        return getGalleryFromJson();
     }
 
     public static Bitmap getBitmap(String url){
@@ -93,18 +89,12 @@ public class FlickrFetch {
         }
     }
 
-    private static List<Photo> getGallery(){
-        List<Photo> photos = null;
-        Gson gson = new Gson();
+    private static List<Photo> getGalleryFromJson(){
         if (getJsonArray().length() > 0){
-            photos = Arrays.asList(gson.fromJson(getJsonArray().toString(), Photo[].class));
+            Gson gson = new Gson();
+            return Arrays.asList(gson.fromJson(getJsonArray().toString(), Photo[].class));
         }
-
-        for (int i = 0; i < 5; i++) {
-            Log.i(TAG, "photo url: " + photos.get(i).getUrl());
-        }
-
-        return photos;
+        return null;
     }
 
     private static JSONArray getJsonArray(){
