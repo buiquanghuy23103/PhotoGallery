@@ -62,39 +62,49 @@ public class PollService extends IntentService {
         QueryPreference.setServiceStatus(context, true);
     }
 
-    // Handle notification for new pictures
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         if (isNetworkConnected()){
-            String query = QueryPreference.getSearchQuery(this);
-            String lastResultId = QueryPreference.getLastResultId(this);
-            List<Photo> gallery = FlickrFetch.getGalleryByQuery(query);
-
-            String resultId = gallery.get(0).getId();
-            if (!resultId.equals(lastResultId)){
-                Log.i(TAG, "Got new result");
-                Intent i = PhotoGalleryActivity.newIntent(this);
-                PendingIntent pendingIntent = PendingIntent.getActivity(
-                        this,
-                        POLL_SERVICE_REQUEST_CODE,
-                        i,
-                        0);
-
-                String title = getResources().getString(R.string.new_pic_title);
-                Notification notification = new  NotificationCompat.Builder(this, TAG)
-                        .setTicker(title)
-                        .setSmallIcon(android.R.drawable.ic_menu_report_image)
-                        .setContentTitle(title)
-                        .setContentText(title)
-                        .setContentIntent(pendingIntent)
-                        .setAutoCancel(true)
-                        .build();
-                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-                notificationManager.notify(NOTIFICATION_ID, notification);
-            }
-            QueryPreference.setLastResultId(this, lastResultId);
-            sendBroadcast(new Intent(SHOW_NOTIFICATION_ACTION));
+            pollPhotos();
         }
+    }
+
+    private void pollPhotos() {
+        String query = QueryPreference.getSearchQuery(this);
+        List<Photo> gallery = FlickrFetch.getGalleryByQuery(query);
+
+        String lastResultId = QueryPreference.getLastResultId(this);
+        String resultId = gallery.get(0).getId();
+        if (!resultId.equals(lastResultId)){
+            popUpNotification(getNotification());
+        }
+
+        QueryPreference.setLastResultId(this, lastResultId);
+        sendBroadcast(new Intent(SHOW_NOTIFICATION_ACTION));
+    }
+
+    private void popUpNotification(Notification notification) {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(NOTIFICATION_ID, notification);
+    }
+
+    private Notification getNotification() {
+        Intent i = PhotoGalleryActivity.newIntent(this);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                POLL_SERVICE_REQUEST_CODE,
+                i,
+                0);
+
+        String title = getResources().getString(R.string.new_pic_title);
+        return new  NotificationCompat.Builder(this, TAG)
+                .setTicker(title)
+                .setSmallIcon(android.R.drawable.ic_menu_report_image)
+                .setContentTitle(title)
+                .setContentText(title)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .build();
     }
 
     private boolean isNetworkConnected(){
